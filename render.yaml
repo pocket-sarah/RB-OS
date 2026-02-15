@@ -1,0 +1,39 @@
+services:
+  # Python Backend API
+  - type: web
+    name: python-backend-api
+    runtime: python
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python backend/app.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: PORT
+        value: 10000
+    healthCheckPath: /health
+
+  # JavaScript Frontend
+  - type: web
+    name: js-frontend
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: API_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # PHP Service with Cloudflared
+  - type: web
+    name: php-cloudflared
+    runtime: docker
+    dockerfilePath: ./php/Dockerfile
+    envVars:
+      - key: CLOUDFLARE_TUNNEL_TOKEN
+        sync: false
+      - key: PORT
+        value: 10000
